@@ -8,20 +8,34 @@
 import UIKit
 
 class SearchScreenController: UIViewController {
+    // MARK: Outlets
     @IBOutlet weak var collectionView: UICollectionView!
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
+    // MARK: Properties
     private var network = NetworkAccess(mode: .byTerm)
     private var searchResults: [UnsplashImage] = []
-    private var updatingNow = false
+    private var updatingNow = false {
+        didSet {
+            if updatingNow {
+                activityIndicator.startAnimating()
+            } else {
+                activityIndicator.stopAnimating()
+            }
+        }
+    }
     private var searchTerm = ""
     private var pagesLoaded = 0
     
+    // MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        activityIndicator.stopAnimating()
         NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name: Notification.Name("searchImagesDownloaded"), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(reloadWithHighResData), name: Notification.Name("searchImageHighResDownloaded"), object: nil)
     }
     
+    // MARK: - Updaters
     @objc private func reloadData() {
         guard let view = collectionView else {return}
         if network.imageSearchResults.count>0 {
@@ -38,6 +52,15 @@ class SearchScreenController: UIViewController {
         updatingNow = false
     }
     
+    @IBAction func refreshData() {
+        searchResults.removeAll()
+        pagesLoaded = 0
+        collectionView.reloadData()
+        network.fetchData(term: searchTerm, page: pagesLoaded+1)
+        updatingNow = true
+    }
+    
+    // MARK: - Utility
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.destination is ImageContentsController {
             guard let vc = segue.destination as? ImageContentsController else {

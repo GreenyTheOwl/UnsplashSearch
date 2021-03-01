@@ -9,15 +9,25 @@ import UIKit
 
 class CollectionListScreenController: UIViewController {
     @IBOutlet weak var collectionView: UICollectionView!
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
     private var network = NetworkAccess(mode: .collections)
     private var searchResults: [UnsplashCollection] = []
     
     private var pagesLoaded = 0
-    private var updatingNow = false
+    private var updatingNow = false {
+        didSet {
+            if updatingNow {
+                activityIndicator.startAnimating()
+            } else {
+                activityIndicator.stopAnimating()
+            }
+        }
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        activityIndicator.stopAnimating()
         NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name: Notification.Name("collectionListImagesDownloaded"), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(reloadWithHighResData), name: Notification.Name("listCoverHighResDownloaded"), object: nil)
     }
@@ -33,6 +43,14 @@ class CollectionListScreenController: UIViewController {
     @objc private func reloadWithHighResData() {
         guard let view = collectionView else {return}
         view.reloadData()
+    }
+    
+    @IBAction func refreshData() {
+        searchResults.removeAll()
+        pagesLoaded = 0
+        collectionView.reloadData()
+        network.fetchData(term: nil, page: pagesLoaded+1)
+        updatingNow = true
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {

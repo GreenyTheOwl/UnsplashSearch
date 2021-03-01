@@ -97,7 +97,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="HV0-HX-ku2">
-                                <rect key="frame" x="20" y="88" width="374" height="725"/>
+                                <rect key="frame" x="20" y="88" width="374" height="683"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                 <viewLayoutGuide key="contentLayoutGuide" id="h71-Kb-pXq"/>
@@ -143,12 +143,23 @@
                                     <outlet property="delegate" destination="FYu-Gp-hAa" id="Y48-Ne-RQ7"/>
                                 </connections>
                             </collectionView>
+                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" hidesWhenStopped="YES" animating="YES" style="medium" translatesAutoresizingMaskIntoConstraints="NO" id="ttv-Vw-fgN">
+                                <rect key="frame" x="194" y="785" width="27" height="28"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            </activityIndicatorView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="LBh-ap-t3o"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     </view>
-                    <navigationItem key="navigationItem" title="Explore" id="xYm-eu-tBj"/>
+                    <navigationItem key="navigationItem" title="Explore" id="xYm-eu-tBj">
+                        <barButtonItem key="rightBarButtonItem" systemItem="refresh" id="qD7-bi-GmZ">
+                            <connections>
+                                <action selector="refreshData" destination="FYu-Gp-hAa" id="B9P-ju-j3f"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
                     <connections>
+                        <outlet property="activityIndicator" destination="ttv-Vw-fgN" id="nIj-1Z-zyo"/>
                         <outlet property="collectionView" destination="HV0-HX-ku2" id="0vN-IW-fLO"/>
                     </connections>
                 </viewController>
@@ -165,7 +176,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="WBR-6f-lbk">
-                                <rect key="frame" x="20" y="140" width="374" height="673"/>
+                                <rect key="frame" x="20" y="140" width="374" height="638"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                 <viewLayoutGuide key="contentLayoutGuide" id="3eI-XV-zVx"/>
@@ -204,12 +215,23 @@
                                     <outlet property="delegate" destination="dmQ-6g-Lmx" id="CQ5-fK-dNm"/>
                                 </connections>
                             </collectionView>
+                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" hidesWhenStopped="YES" animating="YES" style="medium" translatesAutoresizingMaskIntoConstraints="NO" id="H5x-Qo-Ubz">
+                                <rect key="frame" x="194" y="786" width="26" height="27"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            </activityIndicatorView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="K9D-pu-dft"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     </view>
-                    <navigationItem key="navigationItem" title="Explore Collection" id="sJP-E1-JIV"/>
+                    <navigationItem key="navigationItem" title="Explore Collection" id="sJP-E1-JIV">
+                        <barButtonItem key="rightBarButtonItem" systemItem="refresh" id="Zpg-BO-yi9">
+                            <connections>
+                                <action selector="refreshData" destination="dmQ-6g-Lmx" id="Sev-cV-jaW"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
                     <connections>
+                        <outlet property="activityIndicator" destination="H5x-Qo-Ubz" id="IUm-b4-dPl"/>
                         <outlet property="collectionView" destination="WBR-6f-lbk" id="Qjn-gd-rnY"/>
                     </connections>
                 </viewController>
@@ -234,7 +256,7 @@
                                 </connections>
                             </searchBar>
                             <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="8NR-zz-GjA">
-                                <rect key="frame" x="20" y="196" width="374" height="617"/>
+                                <rect key="frame" x="20" y="196" width="374" height="581"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                 <viewLayoutGuide key="contentLayoutGuide" id="fLq-cx-yMj"/>
@@ -278,12 +300,23 @@
                                 <rect key="frame" x="146" y="785" width="123" height="28"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </pageControl>
+                            <activityIndicatorView opaque="NO" contentMode="center" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" hidesWhenStopped="YES" animating="YES" style="medium" translatesAutoresizingMaskIntoConstraints="NO" id="kaP-KF-UaC">
+                                <rect key="frame" x="192" y="781" width="31" height="32"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
+                            </activityIndicatorView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="0kb-cW-T1T"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     </view>
-                    <navigationItem key="navigationItem" title="Search" id="Cyl-Nu-oCL"/>
+                    <navigationItem key="navigationItem" title="Search" id="Cyl-Nu-oCL">
+                        <barButtonItem key="rightBarButtonItem" systemItem="refresh" id="9Zj-ct-Xak">
+                            <connections>
+                                <action selector="refreshData" destination="NS7-QQ-IAz" id="n40-so-NQM"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
                     <connections>
+                        <outlet property="activityIndicator" destination="kaP-KF-UaC" id="mqY-AN-ppY"/>
                         <outlet property="collectionView" destination="8NR-zz-GjA" id="HzE-5N-miT"/>
                     </connections>
                 </viewController>
