@@ -8,13 +8,13 @@
 import UIKit
 
 class CollectionListScreenController: UIViewController {
+    // MARK: Outlets
     @IBOutlet weak var collectionView: UICollectionView!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
+    // MARK: Properties
     private var network = NetworkAccess(mode: .collections)
     private var searchResults: [UnsplashCollection] = []
-    
-    private var pagesLoaded = 0
     private var updatingNow = false {
         didSet {
             if updatingNow {
@@ -24,7 +24,9 @@ class CollectionListScreenController: UIViewController {
             }
         }
     }
-    
+    private var pagesLoaded = 0
+
+    // MARK: - View lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         activityIndicator.stopAnimating()
@@ -32,6 +34,7 @@ class CollectionListScreenController: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(reloadWithHighResData), name: Notification.Name("listCoverHighResDownloaded"), object: nil)
     }
     
+    // MARK: - Updaters
     @objc private func reloadData() {
         guard let view = collectionView else {return}
         searchResults.append(contentsOf: network.collectionSearchResults)
@@ -52,7 +55,7 @@ class CollectionListScreenController: UIViewController {
         network.fetchData(term: nil, page: pagesLoaded+1)
         updatingNow = true
     }
-    
+    // MARK: - Utility
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.destination is CollectionItemsController {
             guard let vc = segue.destination as? CollectionItemsController else {
@@ -74,6 +77,7 @@ extension CollectionListScreenController: UICollectionViewDataSource {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "collectionListCell", for: indexPath) as! collectionListCell
         cell.imageView.image = searchResults[indexPath.row].coverImage.visualRepresentation
         cell.titleLabel.text = searchResults[indexPath.row].name
+        cell.elementsCountLabel.text = "\(searchResults[indexPath.row].totalPhotos) photos"
         return cell
     }
     

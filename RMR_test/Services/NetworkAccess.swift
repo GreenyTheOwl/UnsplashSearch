@@ -35,7 +35,7 @@ class NetworkAccess {
     private lazy var totalImagesFound = 0
     private lazy var downloaded = 0
     private lazy var estimatedDownload = 0
-    private var collectionID: Int = 0
+    var collectionID: Int = 0
     
     // MARK: - Initialization
     enum LoadMode {

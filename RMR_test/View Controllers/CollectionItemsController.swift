@@ -25,7 +25,11 @@ class CollectionItemsController: UIViewController {
         }
     }
     private var pagesLoaded = 0
-    var collectionID = 0
+    var collectionID = 0 {
+        didSet {
+            network.collectionID = collectionID
+        }
+    }
     
     // MARK: - View Lifecycle
     override func viewDidLoad() {
