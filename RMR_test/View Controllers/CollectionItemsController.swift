@@ -25,19 +25,36 @@ class CollectionItemsController: UIViewController {
         }
     }
     private var pagesLoaded = 0
+    
+    // MARK: - Primary configuration
+    var primaryImagesDownloadedNotification = Notification.Name("collectionImagesDownloaded")
+    var primaryHighResImagesDownloadedNotification = Notification.Name("collectionImageHighResDownloaded")
     var collectionID = 0 {
         didSet {
             network.collectionID = collectionID
         }
     }
     
+    // MARK: Backup configuration
+    var backupSearchTerm = ""
+    var backupImagesDownloadedNotification = Notification.Name("searchImagesDownloaded")
+    var backupHighResImagesDownloadedNotification = Notification.Name("searchImageHighResDownloaded")
+    
     // MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         activityIndicator.stopAnimating()
-        NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name: Notification.Name("collectionImagesDownloaded"), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(reloadWithHighResData), name: Notification.Name("collectionImageHighResDownloaded"), object: nil)
-        network.fetchData(term: nil, page: pagesLoaded+1)
+        NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name: primaryImagesDownloadedNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(reloadWithHighResData), name: primaryHighResImagesDownloadedNotification, object: nil)
+        
+        if !(collectionID==0) {
+            network.fetchData(term: nil, page: pagesLoaded+1)
+        } else {
+            network = NetworkAccess(mode: .byTerm)
+            NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name: backupImagesDownloadedNotification, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(reloadWithHighResData), name: backupHighResImagesDownloadedNotification, object: nil)
+            network.fetchData(term: backupSearchTerm, page: pagesLoaded+1)
+        }
         updatingNow = true
     }
     
@@ -62,7 +79,11 @@ class CollectionItemsController: UIViewController {
         searchResults.removeAll()
         pagesLoaded = 0
         collectionView.reloadData()
-        network.fetchData(term: nil, page: pagesLoaded+1)
+        if !(collectionID==0) {
+            network.fetchData(term: nil, page: pagesLoaded+1)
+        } else {
+            network.fetchData(term: backupSearchTerm, page: pagesLoaded+1)
+        }
         updatingNow = true
     }
     
@@ -123,8 +144,12 @@ extension CollectionItemsController: UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if(collectionView.contentOffset.y >= (collectionView.contentSize.height - collectionView.bounds.size.height)) {
             if !updatingNow {
+                if !(collectionID==0) {
+                    network.fetchData(term: nil, page: pagesLoaded+1)
+                } else {
+                    network.fetchData(term: backupSearchTerm, page: pagesLoaded+1)
+                }
                 updatingNow = true
-                network.fetchData(term: nil, page: pagesLoaded+1)
             }
         }
     }

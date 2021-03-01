@@ -7,7 +7,7 @@
 
 import UIKit
 
-class CollectionListScreenController: UIViewController {
+class CollectionListController: UIViewController {
     // MARK: Outlets
     @IBOutlet weak var collectionView: UICollectionView!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
@@ -64,11 +64,12 @@ class CollectionListScreenController: UIViewController {
             }
             vc.collectionID = searchResults[collectionView.indexPath(for: (sender as! collectionListCell))!.row].id
             vc.title = searchResults[collectionView.indexPath(for: (sender as! collectionListCell))!.row].name
+            vc.backupSearchTerm = searchResults[collectionView.indexPath(for: (sender as! collectionListCell))!.row].name
         }
     }
 }
 // MARK: - CollectionView DataSource
-extension CollectionListScreenController: UICollectionViewDataSource {
+extension CollectionListController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         searchResults.count
     }
@@ -86,13 +87,13 @@ extension CollectionListScreenController: UICollectionViewDataSource {
     }
 }
 // MARK: - CollectionView Delegate
-extension CollectionListScreenController: UICollectionViewDelegate {
+extension CollectionListController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
     }
 }
 // MARK: - ScrollView Delegate
-extension CollectionListScreenController: UIScrollViewDelegate {
+extension CollectionListController: UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if(collectionView.contentOffset.y >= (collectionView.contentSize.height - collectionView.bounds.size.height)) {
             if !updatingNow {

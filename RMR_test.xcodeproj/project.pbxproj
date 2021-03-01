@@ -20,7 +20,7 @@
 		546F44B625E9811000FCD37B /* imageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 546F44B525E9811000FCD37B /* imageCell.swift */; };
 		546F44BB25E9827000FCD37B /* NetworkAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 546F44BA25E9827000FCD37B /* NetworkAccess.swift */; };
 		546F44C025E987A300FCD37B /* SearchScreenController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 546F44BF25E987A300FCD37B /* SearchScreenController.swift */; };
-		546F44C325E98A7F00FCD37B /* CollectionListScreenController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 546F44C225E98A7F00FCD37B /* CollectionListScreenController.swift */; };
+		546F44C325E98A7F00FCD37B /* CollectionListController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 546F44C225E98A7F00FCD37B /* CollectionListController.swift */; };
 		546F44C625E98C0300FCD37B /* collectionListCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 546F44C525E98C0300FCD37B /* collectionListCell.swift */; };
 		546F44C925E98D9500FCD37B /* CollectionItemsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 546F44C825E98D9500FCD37B /* CollectionItemsController.swift */; };
 /* End PBXBuildFile section */
@@ -41,7 +41,7 @@
 		546F44B525E9811000FCD37B /* imageCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = imageCell.swift; sourceTree = "<group>"; };
 		546F44BA25E9827000FCD37B /* NetworkAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkAccess.swift; sourceTree = "<group>"; };
 		546F44BF25E987A300FCD37B /* SearchScreenController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchScreenController.swift; sourceTree = "<group>"; };
-		546F44C225E98A7F00FCD37B /* CollectionListScreenController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionListScreenController.swift; sourceTree = "<group>"; };
+		546F44C225E98A7F00FCD37B /* CollectionListController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionListController.swift; sourceTree = "<group>"; };
 		546F44C525E98C0300FCD37B /* collectionListCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = collectionListCell.swift; sourceTree = "<group>"; };
 		546F44C825E98D9500FCD37B /* CollectionItemsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionItemsController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -103,7 +103,7 @@
 			children = (
 				546F44B025E9801400FCD37B /* MainScreenController.swift */,
 				546F44BF25E987A300FCD37B /* SearchScreenController.swift */,
-				546F44C225E98A7F00FCD37B /* CollectionListScreenController.swift */,
+				546F44C225E98A7F00FCD37B /* CollectionListController.swift */,
 				546F44C825E98D9500FCD37B /* CollectionItemsController.swift */,
 				540522E225EA3D4D006A5CF0 /* ImageContentsController.swift */,
 			);
@@ -211,7 +211,7 @@
 				546F44C625E98C0300FCD37B /* collectionListCell.swift in Sources */,
 				546F44C025E987A300FCD37B /* SearchScreenController.swift in Sources */,
 				546F44BB25E9827000FCD37B /* NetworkAccess.swift in Sources */,
-				546F44C325E98A7F00FCD37B /* CollectionListScreenController.swift in Sources */,
+				546F44C325E98A7F00FCD37B /* CollectionListController.swift in Sources */,
 				546F449925E9279000FCD37B /* AppDelegate.swift in Sources */,
 				546F44C925E98D9500FCD37B /* CollectionItemsController.swift in Sources */,
 				546F44B125E9801400FCD37B /* MainScreenController.swift in Sources */,
