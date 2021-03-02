@@ -27,7 +27,6 @@ class CollectionItemsController: UIViewController {
     private var pagesLoaded = 0
     
     // MARK: - Primary configuration
-    var primaryImagesDownloadedNotification = Notification.Name("collectionImagesDownloaded")
     var collectionID = 0 {
         didSet {
             network.collectionID = collectionID
@@ -36,36 +35,25 @@ class CollectionItemsController: UIViewController {
     
     // MARK: Backup configuration
     var backupSearchTerm = ""
-    var backupImagesDownloadedNotification = Notification.Name("searchImagesDownloaded")
     
     // MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        network.delegate = self
         activityIndicator.stopAnimating()
-        NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name: primaryImagesDownloadedNotification, object: nil)
         
         if !(collectionID==0) {
+            network.collectionID = collectionID
             network.fetchData(term: nil, page: pagesLoaded+1)
         } else {
             network = NetworkAccess(mode: .byTerm)
-            NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name: backupImagesDownloadedNotification, object: nil)
+            network.delegate = self
             network.fetchData(term: backupSearchTerm, page: pagesLoaded+1)
         }
         updatingNow = true
     }
     
-    // MARK: - Updaters
-    @objc private func reloadData() {
-        guard let view = collectionView else {return}
-        if network.imageSearchResults.count>0 {
-            searchResults.append(contentsOf: network.imageSearchResults)
-            pagesLoaded+=1
-            network.imageSearchResults.removeAll()
-            view.reloadData()
-        }
-        updatingNow = false
-    }
-    
+    // MARK: - IBActions
     @IBAction func refreshData() {
         searchResults.removeAll()
         pagesLoaded = 0
@@ -152,5 +140,18 @@ extension CollectionItemsController: UICollectionViewDelegateFlowLayout {
         let height = collectionView.frame.size.height
         let width = collectionView.frame.size.width
         return CGSize(width: width/2 - 2, height: height/3 - 8)
+    }
+}
+
+// MARK: - NetworkAccess Delegate
+extension CollectionItemsController: NetworkAccessDelegate {
+    func reloadData(imageSearchResults: [UnsplashImage]?, collectionSearchResults: [UnsplashCollection]?) {
+        guard let imageResults = imageSearchResults, let view = collectionView else { return }
+        if imageResults.count>0 {
+            searchResults.append(contentsOf: imageResults)
+            pagesLoaded+=1
+            view.reloadData()
+        }
+        updatingNow = false
     }
 }

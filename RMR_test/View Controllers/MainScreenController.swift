@@ -18,24 +18,12 @@ class MainScreenController: UIViewController {
     // MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name: Notification.Name("randomImageDownloaded"), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name: Notification.Name("randomImageHighResDownloaded"), object: nil)
+        network.delegate = self
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(true)
         network.fetchData(term: nil, page: nil)
-    }
-    
-    // MARK: - Loaders
-    @objc private func reloadData() {
-        guard let view = collectionView else {
-            return
-        }
-        if !network.imageSearchResults.isEmpty {
-            searchResults = network.imageSearchResults
-            view.reloadData()
-        }
     }
     
     // MARK: - Utility
@@ -45,19 +33,19 @@ class MainScreenController: UIViewController {
                 print("failed to open ImageContentsController")
                 return
             }
-            vc.image = network.imageSearchResults[collectionView.indexPath(for: (sender as! imageCell))!.row]
+            vc.image = searchResults[0]
         }
     }
 }
 // MARK: - CollectionView DataSource
 extension MainScreenController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return network.imageSearchResults.count
+        return searchResults.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "mainScreenCell", for: indexPath) as! imageCell
-        cell.imageView.image = network.imageSearchResults[indexPath.row].highResVisualRepresentation
+        cell.imageView.image = searchResults[indexPath.row].highResVisualRepresentation
         return cell
     }
     
@@ -76,5 +64,13 @@ extension MainScreenController: UICollectionViewDataSource {
 extension MainScreenController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
+    }
+}
+// MARK: - NetworkAccess Delegate
+extension MainScreenController: NetworkAccessDelegate {
+    func reloadData(imageSearchResults: [UnsplashImage]?, collectionSearchResults: [UnsplashCollection]?) {
+        guard let imageResults = imageSearchResults else { return }
+        searchResults = imageResults
+        collectionView.reloadData()
     }
 }

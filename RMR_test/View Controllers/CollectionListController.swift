@@ -29,22 +29,11 @@ class CollectionListController: UIViewController {
     // MARK: - View lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        network.delegate = self
         activityIndicator.stopAnimating()
-        NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name: Notification.Name("collectionListImagesDownloaded"), object: nil)
     }
     
-    // MARK: - Updaters
-    @objc private func reloadData() {
-        guard let view = collectionView else {return}
-        if (network.collectionSearchResults.count>0) {
-            searchResults.append(contentsOf: network.collectionSearchResults)
-            pagesLoaded+=1
-            network.collectionSearchResults.removeAll()
-            view.reloadData()
-        }
-        updatingNow = false
-    }
-    
+    // MARK: - @IBActions
     @IBAction func refreshData() {
         searchResults.removeAll()
         pagesLoaded = 0
@@ -107,5 +96,18 @@ extension CollectionListController: UICollectionViewDelegateFlowLayout {
         let height = collectionView.frame.size.height
         let width = collectionView.frame.size.width
         return CGSize(width: width, height: height/3 + 16)
+    }
+}
+
+// MARK: - NetworkAccess Delegate
+extension CollectionListController: NetworkAccessDelegate {
+    func reloadData(imageSearchResults: [UnsplashImage]?, collectionSearchResults: [UnsplashCollection]?) {
+        guard let _ = imageSearchResults, let collectionResults = collectionSearchResults, let view = collectionView else { return }
+        if collectionResults.count>0{
+            searchResults.append(contentsOf: collectionResults)
+            pagesLoaded+=1
+            view.reloadData()
+        }
+        updatingNow = false
     }
 }

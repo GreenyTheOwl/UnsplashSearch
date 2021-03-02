@@ -14,12 +14,12 @@ class NetworkAccess {
     // MARK: - Required Properties
     private let accessKey: String = "fX71BFbg805A-lu8jfsTN-w7EuOWzXrrfS2wnfBfZzo"
     private let selectedLoadMode: LoadMode
-    private let loadCompletedNotification: Notification.Name
     private var apiRequestBones: String
+    var delegate: NetworkAccessDelegate?
     
     // MARK: - Containers for results
-    lazy var imageSearchResults: [UnsplashImage] = []
-    lazy var collectionSearchResults: [UnsplashCollection] = []
+    private lazy var imageSearchResults: [UnsplashImage] = []
+    private lazy var collectionSearchResults: [UnsplashCollection] = []
     
     // MARK: - Load Properties
     private let primarySession: URLSession = URLSession(configuration: .default)
@@ -35,7 +35,7 @@ class NetworkAccess {
     private lazy var downloaded = 0
     private lazy var estimatedDownload = 0
     var collectionID: Int = 0
-    
+
     // MARK: - Initialization
     enum LoadMode {
         case random
@@ -48,19 +48,15 @@ class NetworkAccess {
         selectedLoadMode = mode
         switch mode {
         case .random:
-            loadCompletedNotification = Notification.Name("randomImageDownloaded")
             apiRequestBones = "https://api.unsplash.com/photos/random"
             
         case .byTerm:
-            loadCompletedNotification = Notification.Name("searchImagesDownloaded")
             apiRequestBones = "https://api.unsplash.com/search/photos"
             
         case .collections:
-            loadCompletedNotification = Notification.Name("collectionListImagesDownloaded")
             apiRequestBones = "https://api.unsplash.com/collections"
             
         case .byCollection:
-            loadCompletedNotification = Notification.Name("collectionImagesDownloaded")
             apiRequestBones = "https://api.unsplash.com/collections/\(collectionID)/photos"
         }
     }
@@ -120,15 +116,15 @@ class NetworkAccess {
             selfPresent.downloaded+=1
             if selfPresent.downloaded==selfPresent.estimatedDownload {
                 DispatchQueue.main.async {
-                    NotificationCenter.default.post(name: selfPresent.loadCompletedNotification, object: nil)
+                    selfPresent.delegate?.reloadData(imageSearchResults: selfPresent.imageSearchResults, collectionSearchResults: selfPresent.collectionSearchResults)
                 }
             }
             DispatchQueue.global(qos: .userInitiated).async {
-                image.loadVisuals(resolution: .full, session: selfPresent.secondarySession) { [weak self] success in
+                image.loadVisuals(resolution: .full, session: selfPresent.secondarySession) { success in
                     guard self != nil else { return }
                     if selfPresent.selectedLoadMode == .random {
                         DispatchQueue.main.async {
-                            NotificationCenter.default.post(name: Notification.Name("randomImageHighResDownloaded"), object: nil)
+                            selfPresent.delegate?.reloadData(imageSearchResults: selfPresent.imageSearchResults, collectionSearchResults: nil)
                         }
                     }
                 }
@@ -268,6 +264,10 @@ class NetworkAccess {
         }
         return nil
     }
+}
+//MARK: - NetworkAccessDelegate
+protocol NetworkAccessDelegate {
+    func reloadData(imageSearchResults: [UnsplashImage]?, collectionSearchResults: [UnsplashCollection]?)
 }
 
 

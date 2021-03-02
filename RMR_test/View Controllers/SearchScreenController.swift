@@ -30,22 +30,11 @@ class SearchScreenController: UIViewController {
     // MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        network.delegate = self
         activityIndicator.stopAnimating()
-        NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name: Notification.Name("searchImagesDownloaded"), object: nil)
     }
     
-    // MARK: - Updaters
-    @objc private func reloadData() {
-        guard let view = collectionView else {return}
-        if network.imageSearchResults.count>0 {
-            searchResults.append(contentsOf: network.imageSearchResults)
-            pagesLoaded+=1
-            network.imageSearchResults.removeAll()
-            view.reloadData()
-        }
-        updatingNow = false
-    }
-    
+    // MARK: - IBActions
     @IBAction func refreshData() {
         searchResults.removeAll()
         pagesLoaded = 0
@@ -64,7 +53,6 @@ class SearchScreenController: UIViewController {
             vc.image = searchResults[collectionView.indexPath(for: (sender as! imageCell))!.row]
         }
     }
-    
 }
 // MARK: CollectionView DataSource
 extension SearchScreenController: UICollectionViewDataSource {
@@ -140,5 +128,18 @@ extension SearchScreenController: UICollectionViewDelegateFlowLayout {
         let height = collectionView.frame.size.height
         let width = collectionView.frame.size.width
         return CGSize(width: width/2 - 2, height: height/3 - 8)
+    }
+}
+
+// MARK: - NetworkAccess Delegate
+extension SearchScreenController: NetworkAccessDelegate {
+    func reloadData(imageSearchResults: [UnsplashImage]?, collectionSearchResults: [UnsplashCollection]?) {
+        guard let imageResults = imageSearchResults, let view = collectionView else { return }
+        if imageResults.count>0 {
+            searchResults.append(contentsOf: imageResults)
+            pagesLoaded+=1
+            view.reloadData()
+        }
+        updatingNow = false
     }
 }
