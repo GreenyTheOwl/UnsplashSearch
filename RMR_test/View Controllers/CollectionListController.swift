@@ -106,3 +106,12 @@ extension CollectionListController: UIScrollViewDelegate {
         }
     }
 }
+//MARK: - FlowLayout Delegate
+extension CollectionListController: UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+
+        let height = collectionView.frame.size.height
+        let width = collectionView.frame.size.width
+        return CGSize(width: width, height: height/3 + 16)
+    }
+}
