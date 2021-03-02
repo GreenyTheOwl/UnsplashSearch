@@ -31,7 +31,6 @@ class CollectionListController: UIViewController {
         super.viewDidLoad()
         activityIndicator.stopAnimating()
         NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name: Notification.Name("collectionListImagesDownloaded"), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(reloadWithHighResData), name: Notification.Name("listCoverHighResDownloaded"), object: nil)
     }
     
     // MARK: - Updaters
@@ -44,11 +43,6 @@ class CollectionListController: UIViewController {
             view.reloadData()
         }
         updatingNow = false
-    }
-    
-    @objc private func reloadWithHighResData() {
-        guard let view = collectionView else {return}
-        view.reloadData()
     }
     
     @IBAction func refreshData() {

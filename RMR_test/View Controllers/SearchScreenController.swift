@@ -32,7 +32,6 @@ class SearchScreenController: UIViewController {
         super.viewDidLoad()
         activityIndicator.stopAnimating()
         NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name: Notification.Name("searchImagesDownloaded"), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(reloadWithHighResData), name: Notification.Name("searchImageHighResDownloaded"), object: nil)
     }
     
     // MARK: - Updaters
@@ -44,12 +43,6 @@ class SearchScreenController: UIViewController {
             network.imageSearchResults.removeAll()
             view.reloadData()
         }
-        updatingNow = false
-    }
-    
-    @objc private func reloadWithHighResData() {
-        guard let view = collectionView else {return}
-        view.reloadData()
         updatingNow = false
     }
     

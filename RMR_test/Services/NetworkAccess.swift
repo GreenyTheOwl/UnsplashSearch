@@ -15,7 +15,6 @@ class NetworkAccess {
     private let accessKey: String = "fX71BFbg805A-lu8jfsTN-w7EuOWzXrrfS2wnfBfZzo"
     private let selectedLoadMode: LoadMode
     private let loadCompletedNotification: Notification.Name
-    private let loadFullResCompletedNotification: Notification.Name
     private var apiRequestBones: String
     
     // MARK: - Containers for results
@@ -50,22 +49,18 @@ class NetworkAccess {
         switch mode {
         case .random:
             loadCompletedNotification = Notification.Name("randomImageDownloaded")
-            loadFullResCompletedNotification = Notification.Name("randomImageHighResDownloaded")
             apiRequestBones = "https://api.unsplash.com/photos/random"
             
         case .byTerm:
             loadCompletedNotification = Notification.Name("searchImagesDownloaded")
-            loadFullResCompletedNotification = Notification.Name("searchImageHighResDownloaded")
             apiRequestBones = "https://api.unsplash.com/search/photos"
             
         case .collections:
             loadCompletedNotification = Notification.Name("collectionListImagesDownloaded")
-            loadFullResCompletedNotification = Notification.Name("listCoverHighResDownloaded")
             apiRequestBones = "https://api.unsplash.com/collections"
             
         case .byCollection:
             loadCompletedNotification = Notification.Name("collectionImagesDownloaded")
-            loadFullResCompletedNotification = Notification.Name("collectionImageHighResDownloaded")
             apiRequestBones = "https://api.unsplash.com/collections/\(collectionID)/photos"
         }
     }
@@ -130,9 +125,11 @@ class NetworkAccess {
             }
             DispatchQueue.global(qos: .userInitiated).async {
                 image.loadVisuals(resolution: .full, session: selfPresent.secondarySession) { [weak self] success in
-                    guard let selfStillPresent = self else { return }
-                    DispatchQueue.main.async {
-                        NotificationCenter.default.post(name: selfStillPresent.loadFullResCompletedNotification, object: nil)
+                    guard self != nil else { return }
+                    if selfPresent.selectedLoadMode == .random {
+                        DispatchQueue.main.async {
+                            NotificationCenter.default.post(name: Notification.Name("randomImageHighResDownloaded"), object: nil)
+                        }
                     }
                 }
             }

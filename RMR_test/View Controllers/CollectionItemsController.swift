@@ -28,7 +28,6 @@ class CollectionItemsController: UIViewController {
     
     // MARK: - Primary configuration
     var primaryImagesDownloadedNotification = Notification.Name("collectionImagesDownloaded")
-    var primaryHighResImagesDownloadedNotification = Notification.Name("collectionImageHighResDownloaded")
     var collectionID = 0 {
         didSet {
             network.collectionID = collectionID
@@ -38,21 +37,18 @@ class CollectionItemsController: UIViewController {
     // MARK: Backup configuration
     var backupSearchTerm = ""
     var backupImagesDownloadedNotification = Notification.Name("searchImagesDownloaded")
-    var backupHighResImagesDownloadedNotification = Notification.Name("searchImageHighResDownloaded")
     
     // MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         activityIndicator.stopAnimating()
         NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name: primaryImagesDownloadedNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(reloadWithHighResData), name: primaryHighResImagesDownloadedNotification, object: nil)
         
         if !(collectionID==0) {
             network.fetchData(term: nil, page: pagesLoaded+1)
         } else {
             network = NetworkAccess(mode: .byTerm)
             NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name: backupImagesDownloadedNotification, object: nil)
-            NotificationCenter.default.addObserver(self, selector: #selector(reloadWithHighResData), name: backupHighResImagesDownloadedNotification, object: nil)
             network.fetchData(term: backupSearchTerm, page: pagesLoaded+1)
         }
         updatingNow = true
@@ -67,12 +63,6 @@ class CollectionItemsController: UIViewController {
             network.imageSearchResults.removeAll()
             view.reloadData()
         }
-        updatingNow = false
-    }
-    
-    @objc private func reloadWithHighResData() {
-        guard let view = collectionView else {return}
-        view.reloadData()
         updatingNow = false
     }
     
