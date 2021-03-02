@@ -7,12 +7,15 @@
 
 import UIKit
 
-class MainScreenController: UIViewController, UICollectionViewDataSource {
+class MainScreenController: UIViewController {
+    // MARK: Outlets
     @IBOutlet weak var collectionView: UICollectionView!
     
+    // MARK: Properties
     private var network = NetworkAccess(mode: .random)
     private var searchResults: [UnsplashImage] = []
 
+    // MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name: Notification.Name("randomImageDownloaded"), object: nil)
@@ -24,14 +27,18 @@ class MainScreenController: UIViewController, UICollectionViewDataSource {
         network.fetchData(term: nil, page: nil)
     }
     
+    // MARK: - Loaders
     @objc private func reloadData() {
         guard let view = collectionView else {
             return
         }
-        searchResults = network.imageSearchResults
-        view.reloadData() 
+        if !network.imageSearchResults.isEmpty {
+            searchResults = network.imageSearchResults
+            view.reloadData()
+        }
     }
     
+    // MARK: - Utility
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.destination is ImageContentsController {
             guard let vc = segue.destination as? ImageContentsController else {
@@ -41,7 +48,9 @@ class MainScreenController: UIViewController, UICollectionViewDataSource {
             vc.image = network.imageSearchResults[collectionView.indexPath(for: (sender as! imageCell))!.row]
         }
     }
-    
+}
+// MARK: - CollectionView DataSource
+extension MainScreenController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return network.imageSearchResults.count
     }
@@ -63,7 +72,7 @@ class MainScreenController: UIViewController, UICollectionViewDataSource {
         }, completion: nil)
     }
 }
-
+// MARK: - CollectionView Delegate
 extension MainScreenController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
