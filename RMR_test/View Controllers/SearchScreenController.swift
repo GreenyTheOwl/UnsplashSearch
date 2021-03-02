@@ -41,8 +41,9 @@ class SearchScreenController: UIViewController {
         if network.imageSearchResults.count>0 {
             searchResults.append(contentsOf: network.imageSearchResults)
             pagesLoaded+=1
+            network.imageSearchResults.removeAll()
+            view.reloadData()
         }
-        view.reloadData()
         updatingNow = false
     }
     

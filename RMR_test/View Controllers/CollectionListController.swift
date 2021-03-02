@@ -37,9 +37,12 @@ class CollectionListController: UIViewController {
     // MARK: - Updaters
     @objc private func reloadData() {
         guard let view = collectionView else {return}
-        searchResults.append(contentsOf: network.collectionSearchResults)
-        view.reloadData()
-        pagesLoaded+=1
+        if (network.collectionSearchResults.count>0) {
+            searchResults.append(contentsOf: network.collectionSearchResults)
+            pagesLoaded+=1
+            network.collectionSearchResults.removeAll()
+            view.reloadData()
+        }
         updatingNow = false
     }
     

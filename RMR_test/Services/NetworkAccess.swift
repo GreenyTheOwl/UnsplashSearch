@@ -13,7 +13,7 @@ import UIKit
 class NetworkAccess {
     // MARK: - Required Properties
     private let accessKey: String = "fX71BFbg805A-lu8jfsTN-w7EuOWzXrrfS2wnfBfZzo"
-    private let  selectedLoadMode: LoadMode
+    private let selectedLoadMode: LoadMode
     private let loadCompletedNotification: Notification.Name
     private let loadFullResCompletedNotification: Notification.Name
     private var apiRequestBones: String
