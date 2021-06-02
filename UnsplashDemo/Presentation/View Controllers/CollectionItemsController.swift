@@ -1,19 +1,22 @@
 //
-//  SearchScreenController.swift
-//  RMR_test
+//  CollectionItemsController.swift
+//  UnsplashDemo
 //
-//  Created by Павел Духовенко on 26.02.2021.
+//  Created by Павел Духовенко on 27.02.2021.
 //
 
 import UIKit
 
-class SearchScreenController: UIViewController {
-    // MARK: Outlets
+final class CollectionItemsController: UIViewController {
+    
+    // MARK: - IBOutlets
+    
     @IBOutlet weak var collectionView: UICollectionView!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
-    // MARK: Properties
-    private var network = NetworkAccess(mode: .byTerm)
+    // MARK: - Private properties
+    
+    private var network = NetworkAccessService(mode: .byCollection)
     private var searchResults: [UnsplashImage] = []
     private var updatingNow = false {
         didSet {
@@ -24,26 +27,39 @@ class SearchScreenController: UIViewController {
             }
         }
     }
-    private var searchTerm = ""
     private var pagesLoaded = 0
     
-    // MARK: - View Lifecycle
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        network.delegate = self
-        activityIndicator.stopAnimating()
+    /// Primary configuration
+    var collectionID = 0 {
+        didSet {
+            network.collectionID = collectionID
+        }
     }
     
-    // MARK: - IBActions
-    @IBAction func refreshData() {
-        searchResults.removeAll()
-        pagesLoaded = 0
-        collectionView.reloadData()
-        network.fetchData(term: searchTerm, page: pagesLoaded+1)
+    /// Backup configuration
+    var backupSearchTerm = ""
+    
+    // MARK: - ViewController
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        network.delegate = self
+        activityIndicator.stopAnimating()
+        
+        if collectionID != 0 {
+            network.collectionID = collectionID
+            network.fetchData(term: nil, page: pagesLoaded+1)
+        } else {
+            network = NetworkAccessService(mode: .byTerm)
+            network.delegate = self
+            network.fetchData(term: backupSearchTerm, page: pagesLoaded+1)
+        }
         updatingNow = true
     }
     
-    // MARK: - Utility
+    // MARK: - Segues
+    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.destination is ImageContentsController {
             guard let vc = segue.destination as? ImageContentsController else {
@@ -53,43 +69,43 @@ class SearchScreenController: UIViewController {
             vc.image = searchResults[collectionView.indexPath(for: (sender as! imageCell))!.row]
         }
     }
+    
+    // MARK: - IBActions
+    
+    @IBAction func refreshData() {
+        searchResults.removeAll()
+        pagesLoaded = 0
+        collectionView.reloadData()
+        if collectionID != 0 {
+            network.fetchData(term: nil, page: pagesLoaded+1)
+        } else {
+            network.fetchData(term: backupSearchTerm, page: pagesLoaded+1)
+        }
+        updatingNow = true
+    }
 }
-// MARK: CollectionView DataSource
-extension SearchScreenController: UICollectionViewDataSource {
+
+// MARK: - UICollectionViewDataSource
+
+extension CollectionItemsController: UICollectionViewDataSource {
+    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return searchResults.count
+        searchResults.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "searchResultCell", for: indexPath) as! imageCell
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "collectionItemCell", for: indexPath) as! imageCell
         cell.imageView.image = searchResults[indexPath.row].visualRepresentation
         return cell
     }
-    
-    func numberOfSections(in collectionView: UICollectionView) -> Int {
-        1
-    }
 }
-// MARK: - CollectionView Delegate
-extension SearchScreenController: UICollectionViewDelegate {
+
+// MARK: - UICollectionViewDelegate
+
+extension CollectionItemsController: UICollectionViewDelegate{
+    
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
-    }
-}
-// MARK: - SearchBar Delegate
-extension SearchScreenController: UISearchBarDelegate {
-    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        guard let term = searchBar.text else {
-            return
-        }
-        searchResults.removeAll()
-        searchTerm = term
-        pagesLoaded = 0
-        collectionView.reloadData()
-        network.fetchData(term: searchTerm, page: pagesLoaded+1)
-        updatingNow = true
-        searchBar.resignFirstResponder()
-        return
     }
     
     func collectionView(_ collectionView: UICollectionView, didHighlightItemAt indexPath: IndexPath) {
@@ -100,7 +116,6 @@ extension SearchScreenController: UISearchBarDelegate {
             }
         }
     }
-    
     func collectionView(_ collectionView: UICollectionView, didUnhighlightItemAt indexPath: IndexPath) {
         UIView.animate(withDuration: 0.5) {
             if let cell = collectionView.cellForItem(at: indexPath) as? imageCell {
@@ -110,34 +125,49 @@ extension SearchScreenController: UISearchBarDelegate {
         }
     }
 }
-// MARK: - ScrollView Delegate
-extension SearchScreenController: UIScrollViewDelegate {
+
+// MARK: - UIScrollViewDelegate
+
+extension CollectionItemsController: UIScrollViewDelegate {
+    
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        if(collectionView.contentOffset.y >= (collectionView.contentSize.height - collectionView.bounds.size.height)) {
+        if collectionView.contentOffset.y >= (collectionView.contentSize.height - collectionView.bounds.size.height) {
             if !updatingNow {
+                if collectionID != 0 {
+                    network.fetchData(term: nil, page: pagesLoaded+1)
+                } else {
+                    network.fetchData(term: backupSearchTerm, page: pagesLoaded+1)
+                }
                 updatingNow = true
-                network.fetchData(term: searchTerm, page: pagesLoaded+1)
             }
         }
     }
 }
-//MARK: - FlowLayout Delegate
-extension SearchScreenController: UICollectionViewDelegateFlowLayout {
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
 
+//MARK: - UICollectionViewDelegateFlowLayout
+
+extension CollectionItemsController: UICollectionViewDelegateFlowLayout {
+    
+    func collectionView(
+        _ collectionView: UICollectionView,
+        layout collectionViewLayout: UICollectionViewLayout,
+        sizeForItemAt indexPath: IndexPath) -> CGSize {
+        
         let height = collectionView.frame.size.height
         let width = collectionView.frame.size.width
-        return CGSize(width: width/2 - 2, height: height/3 - 8)
+        return CGSize(width: width / 2 - 2, height: height / 3 - 8)
     }
 }
 
 // MARK: - NetworkAccess Delegate
-extension SearchScreenController: NetworkAccessDelegate {
+
+extension CollectionItemsController: NetworkAccessDelegate {
+    
     func reloadData(imageSearchResults: [UnsplashImage]?, collectionSearchResults: [UnsplashCollection]?) {
         guard let imageResults = imageSearchResults, let view = collectionView else { return }
-        if imageResults.count>0 {
+        if imageResults.count > 0 {
             searchResults.append(contentsOf: imageResults)
-            pagesLoaded+=1
+            pagesLoaded += 1
             view.reloadData()
         }
         updatingNow = false

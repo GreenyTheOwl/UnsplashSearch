@@ -1,13 +1,11 @@
 //
 //  UnsplashCollection.swift
-//  RMR_test
+//  UnsplashDemo
 //
 //  Created by Павел Духовенко on 27.02.2021.
 //
 
-import UIKit
-
-class UnsplashCollection {
+struct UnsplashCollection {
     var name: String = ""
     var coverImage: UnsplashImage = UnsplashImage()
     var id: Int = 0

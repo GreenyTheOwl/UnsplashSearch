@@ -1,19 +1,22 @@
 //
 //  CollectionListScreenController.swift
-//  RMR_test
+//  UnsplashDemo
 //
 //  Created by Павел Духовенко on 26.02.2021.
 //
 
 import UIKit
 
-class CollectionListController: UIViewController {
-    // MARK: Outlets
+final class CollectionListController: UIViewController {
+    
+    // MARK: IBOutlets
+    
     @IBOutlet weak var collectionView: UICollectionView!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
-    // MARK: Properties
-    private var network = NetworkAccess(mode: .collections)
+    // MARK: Private properties
+    
+    private var network = NetworkAccessService(mode: .collections)
     private var searchResults: [UnsplashCollection] = []
     private var updatingNow = false {
         didSet {
@@ -25,15 +28,18 @@ class CollectionListController: UIViewController {
         }
     }
     private var pagesLoaded = 0
-
-    // MARK: - View lifecycle
+    
+    // MARK: - ViewController
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         network.delegate = self
         activityIndicator.stopAnimating()
     }
     
     // MARK: - @IBActions
+    
     @IBAction func refreshData() {
         searchResults.removeAll()
         pagesLoaded = 0
@@ -41,7 +47,8 @@ class CollectionListController: UIViewController {
         network.fetchData(term: nil, page: pagesLoaded+1)
         updatingNow = true
     }
-    // MARK: - Utility
+    // MARK: - Segues
+    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.destination is CollectionItemsController {
             guard let vc = segue.destination as? CollectionItemsController else {
@@ -54,32 +61,38 @@ class CollectionListController: UIViewController {
         }
     }
 }
-// MARK: - CollectionView DataSource
+
+// MARK: - UICollectionViewDataSource
+
 extension CollectionListController: UICollectionViewDataSource {
+    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         searchResults.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "collectionListCell", for: indexPath) as! collectionListCell
+        let cell = collectionView.dequeueReusableCell(
+            withReuseIdentifier: "collectionListCell",
+            for: indexPath) as! collectionListCell
         cell.imageView.image = searchResults[indexPath.row].coverImage.visualRepresentation
         cell.titleLabel.text = searchResults[indexPath.row].name
         cell.elementsCountLabel.text = "\(searchResults[indexPath.row].totalPhotos) photos"
         return cell
     }
-    
-    func numberOfSections(in collectionView: UICollectionView) -> Int {
-        1
-    }
 }
-// MARK: - CollectionView Delegate
+// MARK: - UICollectionViewDelegate
+
 extension CollectionListController: UICollectionViewDelegate {
+    
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
     }
 }
-// MARK: - ScrollView Delegate
+
+// MARK: - UIScrollViewDelegate
+
 extension CollectionListController: UIScrollViewDelegate {
+    
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if(collectionView.contentOffset.y >= (collectionView.contentSize.height - collectionView.bounds.size.height)) {
             if !updatingNow {
@@ -89,23 +102,31 @@ extension CollectionListController: UIScrollViewDelegate {
         }
     }
 }
-//MARK: - FlowLayout Delegate
-extension CollectionListController: UICollectionViewDelegateFlowLayout {
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
 
+//MARK: - UICollectionViewDelegateFlowLayout
+
+extension CollectionListController: UICollectionViewDelegateFlowLayout {
+    
+    func collectionView(
+        _ collectionView: UICollectionView,
+        layout collectionViewLayout: UICollectionViewLayout,
+        sizeForItemAt indexPath: IndexPath) -> CGSize {
+        
         let height = collectionView.frame.size.height
         let width = collectionView.frame.size.width
-        return CGSize(width: width, height: height/3 + 16)
+        return CGSize(width: width, height: height / 3 + 48)
     }
 }
 
 // MARK: - NetworkAccess Delegate
+
 extension CollectionListController: NetworkAccessDelegate {
+    
     func reloadData(imageSearchResults: [UnsplashImage]?, collectionSearchResults: [UnsplashCollection]?) {
         guard let _ = imageSearchResults, let collectionResults = collectionSearchResults, let view = collectionView else { return }
-        if collectionResults.count>0{
+        if collectionResults.count > 0 {
             searchResults.append(contentsOf: collectionResults)
-            pagesLoaded+=1
+            pagesLoaded += 1
             view.reloadData()
         }
         updatingNow = false

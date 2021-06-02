@@ -1,6 +1,6 @@
 //
 //  NetworkAccess.swift
-//  RMR_test
+//  UnsplashDemo
 //
 //  Created by Павел Духовенко on 26.02.2021.
 //
@@ -9,24 +9,43 @@ import Foundation
 import os
 import UIKit
 
+//MARK: - NetworkAccessDelegate
 
-class NetworkAccess {
+protocol NetworkAccessDelegate {
+    
+    func reloadData(imageSearchResults: [UnsplashImage]?, collectionSearchResults: [UnsplashCollection]?)
+}
+
+final class NetworkAccessService {
+    
+    // MARK: - Types
+    
+    enum LoadMode {
+        case random
+        case byTerm
+        case collections
+        case byCollection
+    }
+    
     // MARK: - Required Properties
+    
     private let accessKey: String = "fX71BFbg805A-lu8jfsTN-w7EuOWzXrrfS2wnfBfZzo"
     private let selectedLoadMode: LoadMode
     private var apiRequestBones: String
     var delegate: NetworkAccessDelegate?
     
     // MARK: - Containers for results
+    
     private lazy var imageSearchResults: [UnsplashImage] = []
     private lazy var collectionSearchResults: [UnsplashCollection] = []
     
-    // MARK: - Load Properties
+    // MARK: - URL Fetch Properties
+    
     private let primarySession: URLSession = URLSession(configuration: .default)
     private let secondarySession: URLSession = URLSession(configuration: .default)
     private lazy var totalPagesNumber = 1 {
         didSet {
-            if totalPagesNumber==0 {
+            if totalPagesNumber == 0 {
                 totalPagesNumber = 1
             }
         }
@@ -35,131 +54,117 @@ class NetworkAccess {
     private lazy var downloaded = 0
     private lazy var estimatedDownload = 0
     var collectionID: Int = 0
-
+    
     // MARK: - Initialization
-    enum LoadMode {
-        case random
-        case byTerm
-        case collections
-        case byCollection
-    }
     
     init(mode: LoadMode) {
         selectedLoadMode = mode
         switch mode {
         case .random:
             apiRequestBones = "https://api.unsplash.com/photos/random"
-            
         case .byTerm:
             apiRequestBones = "https://api.unsplash.com/search/photos"
-            
         case .collections:
             apiRequestBones = "https://api.unsplash.com/collections"
-            
         case .byCollection:
             apiRequestBones = "https://api.unsplash.com/collections/\(collectionID)/photos"
         }
     }
     
-    //MARK: - Load Methods
+    //MARK: - Public Methods
+    
     public func fetchData(term: String?, page: Int?) {
         if let pg = page, pg > totalPagesNumber { return }
         imageSearchResults.removeAll()
         collectionSearchResults.removeAll()
         downloaded = 0
-        guard let urlRequest = imageURLRequestWithAuthentication(for: apiRequestBones, page: page, term: term) else {           return }
-        loadDataByMode(mode: selectedLoadMode, with: urlRequest)
+        guard let urlRequest = constructImageRequest(for: apiRequestBones, page: page, term: term) else { return }
+        fetchImagesData(mode: selectedLoadMode, with: urlRequest)
     }
     
-    private func loadDataByMode(mode: LoadMode, with urlRequest: URLRequest) {
-        let dataTask = URLSession.shared.dataTask(with: urlRequest) { [weak self] (data, _, error) in
-            guard let selfPresent = self else { return }
+    // MARK: - Private methods
+    
+    private func fetchImagesData(mode: LoadMode, with urlRequest: URLRequest) {
+        URLSession.shared.dataTask(with: urlRequest) { [weak self] (data, _, error) in
+            guard let self = self else { return }
             if let error = error { return os_log("%@", log: .default, type: .error, error.localizedDescription) }
             guard let dataChecked = data else { return }
             switch mode {
             case .random:
-                guard let imageData = selfPresent.decodeRandomImage(from: dataChecked, defaultSize: "thumb") else { return }
-                selfPresent.imageSearchResults.append(imageData)
-                selfPresent.estimatedDownload = 1
-                selfPresent.loadImageVisuals(for: imageData)
+                guard let imageData = self.decodeRandomImage(from: dataChecked, defaultSize: "thumb") else { return }
+                self.imageSearchResults.append(imageData)
+                self.estimatedDownload = 1
+                self.fetchImageVisuals(for: imageData)
             case .byTerm:
-                guard let imagesData = selfPresent.decodeSearchImages(from: dataChecked, defaultSize: "thumb") else { return }
-                selfPresent.imageSearchResults = imagesData
-                selfPresent.estimatedDownload = imagesData.count
-                for image in selfPresent.imageSearchResults {
-                    selfPresent.loadImageVisuals(for: image)
+                guard let imagesData = self.decodeSearchImages(from: dataChecked, defaultSize: "thumb") else { return }
+                self.imageSearchResults = imagesData
+                self.estimatedDownload = imagesData.count
+                for image in self.imageSearchResults {
+                    self.fetchImageVisuals(for: image)
                 }
             case .collections:
-                guard let collectionsData = selfPresent.decodeCollectionList(from: dataChecked, defaultSize: "regular") else { return }
-                selfPresent.collectionSearchResults = collectionsData
-                selfPresent.estimatedDownload = collectionsData.count
-                for collection in selfPresent.collectionSearchResults {
-                    selfPresent.imageSearchResults.append(collection.coverImage)
-                    selfPresent.loadImageVisuals(for: collection.coverImage)
+                guard let collectionsData = self.decodeCollectionList(from: dataChecked, defaultSize: "regular") else { return }
+                self.collectionSearchResults = collectionsData
+                self.estimatedDownload = collectionsData.count
+                for collection in self.collectionSearchResults {
+                    self.imageSearchResults.append(collection.coverImage)
+                    self.fetchImageVisuals(for: collection.coverImage)
                 }
             case .byCollection:
-                guard let imagesData = selfPresent.decodeCollectionImages(from: dataChecked, defaultSize: "thumb") else { return }
-                selfPresent.imageSearchResults = imagesData
-                selfPresent.estimatedDownload = imagesData.count
-                for image in selfPresent.imageSearchResults {
-                    selfPresent.loadImageVisuals(for: image)
+                guard let imagesData = self.decodeCollectionImages(from: dataChecked, defaultSize: "thumb") else { return }
+                self.imageSearchResults = imagesData
+                self.estimatedDownload = imagesData.count
+                for image in self.imageSearchResults {
+                    self.fetchImageVisuals(for: image)
                 }
             }
-        }
-        dataTask.resume()
+        }.resume()
     }
     
-    //loads image
-    private func loadImageVisuals(for image: UnsplashImage) {
+    private func fetchImageVisuals(for image: UnsplashImage) {
         image.loadVisuals(resolution: .byDefault, session: primarySession) { [weak self] success in
-            guard let selfPresent = self else { return }
-            selfPresent.downloaded+=1
-            if selfPresent.downloaded==selfPresent.estimatedDownload {
+            guard let self = self else { return }
+            self.downloaded += 1
+            if self.downloaded == self.estimatedDownload {
                 DispatchQueue.main.async {
-                    selfPresent.delegate?.reloadData(imageSearchResults: selfPresent.imageSearchResults, collectionSearchResults: selfPresent.collectionSearchResults)
+                    self.delegate?.reloadData(
+                        imageSearchResults: self.imageSearchResults,
+                        collectionSearchResults: self.collectionSearchResults)
                 }
             }
             DispatchQueue.global(qos: .userInitiated).async {
-                image.loadVisuals(resolution: .full, session: selfPresent.secondarySession) { success in
-                    guard self != nil else { return }
-                    if selfPresent.selectedLoadMode == .random {
+                image.loadVisuals(resolution: .full, session: self.secondarySession) { success in
+                    if self.selectedLoadMode == .random {
                         DispatchQueue.main.async {
-                            selfPresent.delegate?.reloadData(imageSearchResults: selfPresent.imageSearchResults, collectionSearchResults: nil)
+                            self.delegate?.reloadData(imageSearchResults: self.imageSearchResults, collectionSearchResults: nil)
                         }
                     }
                 }
             }
         }
     }
-    //MARK: - Utility
-    //constructs url with query parameters
-    private func imageURLRequestWithAuthentication(for source: String, page: Int?, term: String?) -> URLRequest? {
+    
+    private func constructImageRequest(for source: String, page: Int?, term: String?) -> URLRequest? {
         guard var components = URLComponents(string: source) else { return nil }
-        
         components.queryItems = []
-        
         if let pageToLoad = page {
             components.queryItems?.append(URLQueryItem(name: "page", value: "\(pageToLoad)"))
         }
         if let searchTerm = term {
             components.queryItems?.append(URLQueryItem(name: "query", value: searchTerm))
         }
-        
         guard let url = components.url else { return nil }
-        
         var request = URLRequest(url: url)
         request.addValue("Client-ID \(accessKey)", forHTTPHeaderField: "Authorization")
-        print(request)
         return request
     }
     
-    //MARK: - JSON Decoders
     private func decodeCollectionList(from data: Data, defaultSize: String) -> [UnsplashCollection]? {
         do {
             if let jsonObject = try JSONSerialization.jsonObject(with: data, options: []) as? [[String: Any]] {
                 var output: [UnsplashCollection] = []
                 for result in jsonObject {
-                    let collection = UnsplashCollection()
+                    var collection = UnsplashCollection()
                     collection.coverImage = UnsplashImage()
                     collection.id = result["id"] as? Int ?? 0
                     collection.totalPhotos = result["total_photos"] as? Int ?? 0
@@ -244,11 +249,10 @@ class NetworkAccess {
     
     private func decodeRandomImage(from data: Data, defaultSize: String) -> UnsplashImage? {
         do {
-            if
-                let jsonObject = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                let urls = jsonObject["urls"] as? [String: Any],
-                let defaultURLString = urls[defaultSize] as? String,
-                let defaultSizeURL = URL(string: defaultURLString) {
+            if let jsonObject = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+               let urls = jsonObject["urls"] as? [String: Any],
+               let defaultURLString = urls[defaultSize] as? String,
+               let defaultSizeURL = URL(string: defaultURLString) {
                 totalPagesNumber = 1
                 let image = UnsplashImage()
                 image.defaultSizeURL = defaultSizeURL
@@ -264,10 +268,6 @@ class NetworkAccess {
         }
         return nil
     }
-}
-//MARK: - NetworkAccessDelegate
-protocol NetworkAccessDelegate {
-    func reloadData(imageSearchResults: [UnsplashImage]?, collectionSearchResults: [UnsplashCollection]?)
 }
 
 
